@@ -1,7 +1,8 @@
 .data
-bitmap_address:	.word 0x10010000
-bitmap_size:	.word 4096			# 256x256 pixels a 4x4 
+
+		
 lista:	.space 80
+
 
 .text
 
@@ -9,7 +10,7 @@ lista:	.space 80
 	sll	$t4, $y, 6		#multiplica o $y por 64 e setar em $t4 para percorrer as linhas
 	addu	$t4, $t4, $x		#adiciona em $t4 a soma de $t4 com $x
 	sll	$t4, $t4, 2		# multiplica por 4 para setar na memoria  
-	addi	$t4, $t4, 0x10010000	# soma o $t4 com o endereÃ§o do primeiro pixel
+	addi	$t4, $t4, 0x10000000	# soma o $t4 com o endereÃ§o do primeiro pixel
 	sw	$cor, 0($t4)		# grava a $cor em $t4
 .end_macro
 
@@ -28,7 +29,7 @@ sair:
 	move	$t6, $zero 		#$t6 recebe zero prara iniciar o contado
 loop:	beq	$t6, 4096, sair		#Desvia para sair se o contador($t6) for igual a 4096(numero total de pixel 256/4 x 256/4 ) 
 	sll	$t4, $t6, 2		#multiplica $t6 por 4 para saltar de uma posição de mémoria para outra 
-	addi	$t4, $t4, 0x10010000	#somar o valor do endereço da primeira posição do pixel ao $t4
+	addi	$t4, $t4, 0x10000000	#somar o valor do endereço da primeira posição do pixel ao $t4
 	sw	$t5, 0($t4)		#grava na posição passada em $t4 a cor guardada em $t5
 	addi	$t6, $t6, 1		#incrementa $t6 em 1
 	j	loop			
@@ -57,25 +58,26 @@ exit:
 	syscall
 .end_macro
 
-.macro sortear_cor()
-	sorteia_int()	
-	bne 	$a0,0x00000000, else1
-	addi	$t2, $zero, 0x00FF0000 	#vermelho
-	quadrado($t2)
-else1:	
-	bne 	$a0, 0x00000001, else2
-	addi	$t2, $zero, 0x000000FF 	#azul
-	quadrado($t2)
-else2:	
-	bne 	$a0, 0x00000002, else3
-	addi	$t2, $zero, 0x00FFFF00	#amarelo
-	quadrado($t2)
-else3:	
+.macro mostrar($x)
 	
-	bne 	$a0, 0x00000003, sair
-	addi	$t2, $zero, 0x0000FF00	#verde
-	quadrado($t2)		
-sair:		
+	beq 	$x, 0x00000000, case0
+	beq 	$x, 0x00000001, case1
+	beq 	$x, 0x00000002, case2
+	beq 	$x, 0x00000003, case3
+case0:		
+	
+	quadrado($s0)
+	j sair_case_mostrar
+case1:		
+	quadrado($s1)
+	j sair_case_mostrar
+case2:		
+	quadrado($s2)
+	j sair_case_mostrar
+case3:		
+	quadrado($s3)
+	j sair_case_mostrar		
+sair_case_mostrar:		
 	pausar(600)
 	pintarTudo(0x00FFFFFF)
 	pausar(600)
@@ -87,23 +89,88 @@ sair:
     	syscall
 .end_macro
 
-
-.globl main
-main:
-	la $t1, lista # $s0 recebe o endere�o de lista
-	pintarTudo(0x00FFFFFF)
-loop_ini:
-        bgt $t0,19,exit
-    	addi $t0,$t0,1    	
-    	#pausar(600)
+.macro sorteia_tudo()
+	la $t1, lista # $t1 recebe o endere�o de lista
+loop_sorteia_tudo:
+        bgt $t0,19,exit_sorteia_tudo
+    	addi $t0,$t0,1  
     	sorteia_int()
-    	print($a0)
-    	
     	sw $a0, ($t1)
     	addi $t1, $t1, 4	   	
-    	j loop_ini  
+    	j loop_sorteia_tudo
+exit_sorteia_tudo:
+.end_macro
 
-exit:
+.macro ler_teclado()	
+	li  $v0, 12         
+   	add $a0, $t0, $zero  # load desired value into argument register $a0, using pseudo-op
+	syscall	
+.end_macro
+
+.globl main
+main:	
+	addi	$s0, $zero, 0x00FF0000 	#vermelho
+	addi	$s1, $zero, 0x000000FF 	#azul
+	addi	$s2, $zero, 0x00FFFF00	#amarelo
+	addi	$s3, $zero, 0x0000FF00	#verde
+	pintarTudo(0x00FFFFFF)
+	sorteia_tudo()
 	
+	move $t0,$zero
+loop_main:
 	
+	bgt $t0,19,exit_main
+	la $t1, lista # $t1 recebe o endere�o de lista
+	move $t3, $zero
+loop_sec:
+	bgt $t3, $t0, exit_sec     	
+    	lw   $t2, ($t1)
+    	print($t2)
+    	mostrar($t2)   	
+    	addi $t1, $t1, 4
+    	addi $t3,$t3,1
+    	j loop_sec
+exit_sec:
+	la $t1, lista # $t1 recebe o endere�o de lista
+	move $t3, $zero	
+loop_verificar:
+	bgt $t3, $t0, sair_case
+	ler_teclado()
+case:
+	beq  $v0, 0x00000061, tecla_a
+	beq  $v0, 0x00000073, tecla_s
+	beq  $v0, 0x00000064, tecla_d
+	beq  $v0, 0x00000066, tecla_f
+	j case
+tecla_a:
+	lw   $t2, ($t1)
+	bne $t2, 0x00000000, perdeu
+	j fim_case
+tecla_s:
+	lw   $t2, ($t1)
+	bne $t2, 0x00000001, perdeu
+	j fim_case
+tecla_d:
+	lw   $t2, ($t1)
+	bne $t2, 0x00000002, perdeu
+	j fim_case
+tecla_f:
+	lw   $t2, ($t1)
+	bne $t2, 0x00000003, perdeu
+	j fim_case
+fim_case:	  	
+    	
+    	addi $t1, $t1, 4
+    	addi $t3,$t3,1
+    	j loop_verificar
+sair_case:    	
+    	addi $t0,$t0,1	
+    	pintarTudo(0x00006400)
+    	pausar(3000)
+    	pintarTudo(0x00FFFFFF)
+    	j loop_main
+    	
+perdeu:
+	pintarTudo(0x00FF0000)
+exit_main:
 	
