@@ -1,8 +1,6 @@
 .data
-
-		
+	
 lista:	.space 80
-
 
 .text
 
@@ -21,6 +19,16 @@ loop:	beq	$t6, $t8, sair		#esse loop pinta n pixel na horizontal a partir de apa
 	setPixel($t6, $y, $cor)		#setPixel Ã© chamada para para pintar os pixel, neste caso sÃ³ o eixo x(coluna) Ã© incrementado em 1 para pintar o prÃ³ximo pixel
 	addi	$t6, $t6, 1		#incrementa $t6 em 1 atÃ© ser igual $t8
 	j	loop			#dÃ¡ um salta para loop
+sair:
+.end_macro
+
+.macro linhaV(%x, $y, %n, $cor)		#procedimento para criar linha vertical a partir de uma posição %x é a coluna e $y é a linhan %n é o número de pixel
+	addi	$t6, $zero, %x		#$t6 recebe o valor passado a %x
+	addi	$t8, $y, %n		#$t8 recebe o valor da soma de $y com %n, neste caso $t8 terá o valor da soma da posição da linha com o número de pixel
+loop:	beq	$y, $t8, sair		#esse loop pinta n pixel na vertical a partir de apartir de uma posição(x,y), enquanto $y for igual a $t8 então sai do loop  
+	setPixel($t6, $y, $cor)		#setPixel é chamada para para pintar os pixel, neste caso só o eixo y(linha) é incrementado em 1 para pintar o próximo pixel
+	addi	$y, $y, 1		#incrementa $y em 1 até ser igual $ty
+	j	loop			#dá um salta para loop
 sair:
 .end_macro
 
@@ -107,12 +115,58 @@ exit_sorteia_tudo:
 	syscall	
 .end_macro
 
+.macro tela_iniciar()
+	pintarTudo(0x00FFFFFF)
+	#letra s
+	addi	$t7, $zero, 17
+	linhaH(17, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	addi	$t7, $zero, 21
+	linhaH(17, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=21 com comprimento de 6 pixel
+	addi	$t7, $zero, 26
+	linhaH(17, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=21 com comprimento de 6 pixel
+	addi	$t7, $zero, 17
+	linhaV(17, $t7, 5, $t9)	#cria uma linha vertical na posição x=25 e y=17 com comprimento de 10 pixel
+	addi	$t7, $zero, 21
+	linhaV(22, $t7, 6, $t9)		#cria uma linha vertical na posição x=30 e y=18 com comprimento de 9 pixel
+	# letra t
+	addi	$t7, $zero, 17
+	linhaH(25, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	addi	$t7, $zero, 17
+	linhaV(28, $t7, 10, $t9)	#cria uma linha vertical na posição x=25 e y=17 com comprimento de 10 pixel
+	
+	# letra a
+	addi	$t7, $zero, 17
+	linhaH(33, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	addi	$t7, $zero, 21
+	linhaH(33, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=21 com comprimento de 6 pixel
+	addi	$t7, $zero, 17
+	linhaV(33, $t7, 10, $t9)	#cria uma linha vertical na posição x=25 e y=17 com comprimento de 10 pixel
+	addi	$t7, $zero, 18
+	linhaV(38, $t7, 9, $t9)		#cria uma linha vertical na posição x=30 e y=18 com comprimento de 9 pixel
+	# letra r
+	addi	$t7, $zero, 17
+	linhaH(41, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	addi	$t7, $zero, 17
+	linhaV(41, $t7, 10, $t9)	#cria uma linha vertical na posição x=25 e y=17 com comprimento de 10 pixel
+	# letra t
+	addi	$t7, $zero, 17
+	linhaH(49, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	addi	$t7, $zero, 17
+	linhaV(52, $t7, 10, $t9)	
+loop_enter:
+	ler_teclado()
+	beq  $v0, 0x00000020, iniciar
+	j loop_enter
+iniciar:		
+.end_macro
+
 .globl main
 main:	
 	addi	$s0, $zero, 0x00FF0000 	#vermelho
 	addi	$s1, $zero, 0x000000FF 	#azul
 	addi	$s2, $zero, 0x00FFFF00	#amarelo
 	addi	$s3, $zero, 0x0000FF00	#verde
+	tela_iniciar()
 	pintarTudo(0x00FFFFFF)
 	sorteia_tudo()
 	
@@ -172,5 +226,7 @@ sair_case:
     	
 perdeu:
 	pintarTudo(0x00FF0000)
+	pausar(3000)
+	j main
 exit_main:
 	
