@@ -92,8 +92,8 @@ sair_case_mostrar:
 .end_macro
 
 .macro print($x)
-	li  $v0, 1           # service 1 is print integer
-    	add $a0, $x, $zero  # load desired value into argument register $a0, using pseudo-op
+	li  $v0, 1           
+    	add $a0, $x, $zero  
     	syscall
 .end_macro
 
@@ -111,7 +111,7 @@ exit_sorteia_tudo:
 
 .macro ler_teclado()	
 	li  $v0, 12         
-   	add $a0, $t0, $zero  # load desired value into argument register $a0, using pseudo-op
+   	add $a0, $t0, $zero  
 	syscall	
 .end_macro
 
@@ -119,38 +119,38 @@ exit_sorteia_tudo:
 	pintarTudo(0x00FFFFFF)
 	#letra s
 	addi	$t7, $zero, 17
-	linhaH(17, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	linhaH(17, $t7, 6, $t9)		
 	addi	$t7, $zero, 21
-	linhaH(17, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=21 com comprimento de 6 pixel
+	linhaH(17, $t7, 6, $t9)		
 	addi	$t7, $zero, 26
-	linhaH(17, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=21 com comprimento de 6 pixel
+	linhaH(17, $t7, 6, $t9)		
 	addi	$t7, $zero, 17
-	linhaV(17, $t7, 5, $t9)	#cria uma linha vertical na posição x=25 e y=17 com comprimento de 10 pixel
+	linhaV(17, $t7, 5, $t9)	
 	addi	$t7, $zero, 21
-	linhaV(22, $t7, 6, $t9)		#cria uma linha vertical na posição x=30 e y=18 com comprimento de 9 pixel
+	linhaV(22, $t7, 6, $t9)		
 	# letra t
 	addi	$t7, $zero, 17
-	linhaH(25, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	linhaH(25, $t7, 6, $t9)		
 	addi	$t7, $zero, 17
-	linhaV(28, $t7, 10, $t9)	#cria uma linha vertical na posição x=25 e y=17 com comprimento de 10 pixel
+	linhaV(28, $t7, 10, $t9)	
 	
 	# letra a
 	addi	$t7, $zero, 17
-	linhaH(33, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	linhaH(33, $t7, 6, $t9)		
 	addi	$t7, $zero, 21
-	linhaH(33, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=21 com comprimento de 6 pixel
+	linhaH(33, $t7, 6, $t9)		
 	addi	$t7, $zero, 17
-	linhaV(33, $t7, 10, $t9)	#cria uma linha vertical na posição x=25 e y=17 com comprimento de 10 pixel
+	linhaV(33, $t7, 10, $t9)	
 	addi	$t7, $zero, 18
-	linhaV(38, $t7, 9, $t9)		#cria uma linha vertical na posição x=30 e y=18 com comprimento de 9 pixel
+	linhaV(38, $t7, 9, $t9)		
 	# letra r
 	addi	$t7, $zero, 17
-	linhaH(41, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	linhaH(41, $t7, 6, $t9)		
 	addi	$t7, $zero, 17
-	linhaV(41, $t7, 10, $t9)	#cria uma linha vertical na posição x=25 e y=17 com comprimento de 10 pixel
+	linhaV(41, $t7, 10, $t9)	
 	# letra t
 	addi	$t7, $zero, 17
-	linhaH(49, $t7, 6, $t9)		#cria uma linha horizontal na posição x=25 e y=17 com comprimento de 6 pixel
+	linhaH(49, $t7, 6, $t9)		
 	addi	$t7, $zero, 17
 	linhaV(52, $t7, 10, $t9)	
 loop_enter:
@@ -158,6 +158,24 @@ loop_enter:
 	beq  $v0, 0x00000020, iniciar
 	j loop_enter
 iniciar:		
+.end_macro
+
+.macro som()
+	li $v0,31		#parametro para a execução de som MIDI			#
+	la $a0,	61		#Carrega a nota musical no registrador			#
+	la $a1, 500		#Tempo em milissegundos					#
+	la $a2, 3		#código do instrumento					#
+	la $a3, 127		#volume							#
+	syscall			#executa o som
+.end_macro
+
+.macro som2()
+	li $v0,31		#parametro para a execução de som MIDI			#
+	la $a0,	61		#Carrega a nota musical no registrador			#
+	la $a1, 1500		#Tempo em milissegundos					#
+	la $a2, 63		#código do instrumento					#
+	la $a3, 127		#volume							#
+	syscall			#executa o som
 .end_macro
 
 .globl main
@@ -173,7 +191,7 @@ main:
 	move $t0,$zero
 loop_main:
 	
-	bgt $t0,19,exit_main
+	bgt $t0,19, main
 	la $t1, lista # $t1 recebe o endereço de lista
 	move $t3, $zero
 loop_sec:
@@ -190,6 +208,7 @@ exit_sec:
 loop_verificar:
 	bgt $t3, $t0, sair_case
 	ler_teclado()
+	
 case:
 	beq  $v0, 0x00000061, tecla_a
 	beq  $v0, 0x00000073, tecla_s
@@ -220,13 +239,15 @@ fim_case:
 sair_case:    	
     	addi $t0,$t0,1	
     	pintarTudo(0x00006400)
+    	som()
     	pausar(3000)
     	pintarTudo(0x00FFFFFF)
     	j loop_main
     	
 perdeu:
 	pintarTudo(0x00FF0000)
+	som2()
 	pausar(3000)
 	j main
-exit_main:
+
 	
